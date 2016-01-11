@@ -57,16 +57,21 @@ rowsA = 0
 if Master:
     log.info('Distribute matrix A')
     for lineS in mtxA:
-        row = [ float(i) for i in lineS.split(' ') ]
-        targTh = rowsA % threads
-        
-        if targTh != 0:
-            comm.send(rowsA, dest=targTh, tag=1)
-            comm.send(row, dest=targTh, tag=2)
-        else:
-            rowsByIndex[rowsA] = row
-        
-        rowsA += 1;
+        try:
+            row = [ float(i) for i in lineS.strip().split(' ') ]
+            
+            targTh = rowsA % threads
+            
+            if targTh != 0:
+                comm.send(rowsA, dest=targTh, tag=1)
+                comm.send(row, dest=targTh, tag=2)
+            else:
+                rowsByIndex[rowsA] = row
+            
+            rowsA += 1;
+        except ValueError:
+            log.error('Failed to parse: {0}'.format(lineS))
+            sys.exit(6)
     
     for t in range(1, threads):
         comm.send(-1, dest=t, tag=1)
@@ -95,7 +100,7 @@ if Master:
     c = 0
     log.info('Distribute matrix B')
     for lineS in mtxB:
-        row = [ float(i) for i in lineS.split(' ') ]
+        row = [ float(i) for i in lineS.strip().split(' ') ]
         colsB = len(row)
         
         comm.bcast(c, root=0)
@@ -144,4 +149,8 @@ else:
     
     
 if Master:
-    print rMatrix
+    for row in rMatrix:
+        for e in row:
+            sys.stdout.write(str(e))
+            sys.stdout.write(' ')
+        sys.stdout.write('\n')   

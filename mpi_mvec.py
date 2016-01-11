@@ -48,7 +48,7 @@ if Master:
 
 vecArr = None
 if Master:
-    vecArr = [ float(i.rstrip('\n')) for i in vec ]
+    vecArr = [ float(i.strip('\n').strip()) for i in vec ]
     log.info('Vector: {0}'.format(vecArr))
 
 vecArr = comm.bcast(vecArr, root = 0)
@@ -58,7 +58,7 @@ if Master:
     c = 0
     log.info('Distribute matrix')
     for lineS in mtx:
-        row = [ float(i) for i in lineS.split(' ') ]
+        row = [ float(i) for i in lineS.strip().split(' ') ]
         targTh = c % threads
         
         if targTh != 0:
